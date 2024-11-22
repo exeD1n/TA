@@ -1,68 +1,110 @@
 import re
+import difflib
 
-class Lexer:
-    def __init__(self):
-        # Ключевые слова, разделители и допустимые символы
-        self.keywords = {
-            "program", "var", "begin", "end", "let", "if", "then", "else", "end_else",
-            "for", "do", "while", "loop", "input", "output", "%", "!", "$"
-        }
-        self.delimiters = {
-            "<>", "<", "<=", ">", ">=", "or", "and", "not", "+", "-", "*", "/",
-            ";", ",", "}", "{", "(", ")", " ", ".", "=",
-        }
-        self.comment_start = "#"
-        self.comment_end = "#"
+# Таблица №1 ключевых слов языка M
+keywords = {
+    "program", "var", "begin", "end", "let", "if", "then", "else", "and_else", 
+    "for", "do", "while", "loop", "input", "output", "%", "!", "$"
+}
 
-        # Регулярные выражения для лексем
-        self.patterns = {
-            "identifier": r"^[A-Za-z][A-Za-z0-9]*$",  # Идентификаторы
-            "integer": r"^[+-]?\d+$",  # Целые числа (допускаются знаки + и -)
-            "real": r"^[+-]?\d+\.\d+([eE][+-]?\d+)?$",  # Действительные числа
-            "logical_constant": r"^(true|false)$",  # Логические константы
-        }
+# Таблица №2 разделителей языка M
+delimiters = {
+    "<>", "<", "<=", ">", ">=", "or", "and", "not", "+", "-", "*", "/", ";", 
+    ",", "}", "{", "(", ")", "пробел", ".", "=", "#"
+}
 
-    def tokenize(self, code):
-        """
-        Лексический анализ: проверка программы на лексические ошибки.
-        """
-        errors = []
-        tokens = []
+# Регулярные выражения для чисел и булевых значений
+number_regex = r"^[-+]?\d+\.\d+$|^[-+]?\d+$"  # Для чисел (целые и вещественные)
+boolean_regex = r"^true$|^false$"  # Для булевых значений
 
-        # Удаление комментариев
-        code = self.remove_comments(code)
+# Регулярные выражения для переменных (строки начинаются с %, ! или $)
+variable_regex = r"^[%!$]\s*(\w+(\s*,\s*\w+)*)\s*$"  # Ищем переменные, разделённые запятой
 
-        # Разбиение кода на токены с учётом пробелов и разделителей
-        words = re.split(r"(\s+|[<>=;,+*/{}().-])", code)
-        words = [word.strip() for word in words if word.strip()]
+def parse_file(file_path):
+    try:
+        # Открытие файла для чтения
+        with open(file_path, 'r', encoding='utf-8') as file:
+            # Чтение содержимого файла
+            content = file.read()
+            
+            # Удаление комментариев (между # и #)
+            content = re.sub(r'#.*#', '', content)  # Удаляем комментарии
 
-        for word in words:
-            if word in self.keywords:  # Ключевое слово
-                tokens.append(f"KEYWORD({word})")
-            elif word in self.delimiters:  # Разделитель
-                tokens.append(f"DELIMITER({word})")
-            elif re.fullmatch(self.patterns["identifier"], word):  # Идентификатор
-                tokens.append(f"IDENTIFIER({word})")
-            elif re.fullmatch(self.patterns["integer"], word):  # Целое число
-                tokens.append(f"INTEGER({word})")
-            elif re.fullmatch(self.patterns["real"], word):  # Действительное число
-                tokens.append(f"REAL({word})")
-            elif re.fullmatch(self.patterns["logical_constant"], word):  # Логическая константа
-                tokens.append(f"BOOLEAN({word})")
-            else:  # Неизвестная лексема
-                errors.append(f"Неизвестная лексема: '{word}'")
+            # Разбиение на слова и символы
+            tokens = re.findall(r'\w+|[^\w\s]', content)  # \w+ - слова, [^\w\s] - все остальные символы
+            
+            # Список для токенов, которых нет в таблицах
+            unknown_tokens = []
+            lex_error_tokens = []
 
-        return tokens, errors
+            # Список переменных
+            variables = set()
+            variable_errors = []
 
-    def remove_comments(self, code):
-        """
-        Удаляет комментарии из кода.
-        """
-        return re.sub(rf"{self.comment_start}.*?{self.comment_end}", "", code, flags=re.DOTALL)
+            # Проход по строкам в файле для поиска переменных
+            lines = content.splitlines()
+            for line in lines:
+                match = re.match(variable_regex, line.strip())  # Поиск строк с переменными
+                if match:
+                    # Извлекаем переменные из строки
+                    var_list = match.group(1).split(',')
+                    var_list = [var.strip() for var in var_list]  # Убираем лишние пробелы
 
-    def analyze(self, code):
-        tokens, errors = self.tokenize(code)
+                    # Проверка на переменные, начинающиеся с цифры
+                    for var in var_list:
+                        if var[0].isdigit():
+                            variable_errors.append(f"[Error] Лексическая ошибка: переменная '{var}' не может начинаться с числа.")
+                        else:
+                            variables.add(var)
 
-        if errors:
-            return "Лексическая проверка: NON"
-        return "Лексическая проверка: OK"
+            # Проход по токенам и проверка их принадлежности к ключевым словам или разделителям
+            for token in tokens:
+                # Проверка на число или булевое значение
+                if re.match(number_regex, token) or re.match(boolean_regex, token):
+                    continue  # Пропускаем числа и булевы значения
+
+                if token in variables:
+                    continue  # Пропускаем переменные
+
+                if token not in keywords and token not in delimiters:
+                    unknown_tokens.append(token)
+                    
+                    # Проверка на возможную лексическую ошибку (похоже на ключевое слово)
+                    closest_keyword = difflib.get_close_matches(token, keywords, n=1, cutoff=0.8)
+                    if closest_keyword:
+                        lex_error_tokens.append(f"[Error] Лексическая ошибка: '{token}' возможно вы имели в виду '{closest_keyword[0]}'")
+                    else:
+                        # Если токен не является числом и не похоже на ключевое слово, это ошибка
+                        lex_error_tokens.append(f"[Error] Лексическая ошибка: '{token}' не является допустимым токеном.")
+
+            # Проверка на наличие ошибок
+            if not lex_error_tokens and not variable_errors and not unknown_tokens:
+                return "Лексический анализ ОК"
+
+            return unknown_tokens, lex_error_tokens, variables, variable_errors
+            
+    except FileNotFoundError:
+        print(f"Файл {file_path} не найден.")
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
+
+# Пример использования функции
+result = parse_file('gg.m')
+
+if isinstance(result, str):
+    # Если результат - строка (успешный анализ)
+    print(result)
+else:
+    unknown_tokens, lex_error_tokens, variables, variable_errors = result
+    
+    # Вывод ошибок
+    if lex_error_tokens:
+        print("\nЛексические ошибки:")
+        for error in lex_error_tokens:
+            print(error)
+
+    # Вывод ошибок в переменных
+    if variable_errors:
+        print("\nОшибки в переменных:")
+        for error in variable_errors:
+            print(error)
