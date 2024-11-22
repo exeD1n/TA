@@ -26,13 +26,13 @@ def parse_file(file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
             # Чтение содержимого файла
             content = file.read()
-            
+
             # Удаление комментариев (между # и #)
             content = re.sub(r'#.*#', '', content)  # Удаляем комментарии
 
             # Разбиение на слова и символы
             tokens = re.findall(r'\w+|[^\w\s]', content)  # \w+ - слова, [^\w\s] - все остальные символы
-            
+
             # Список для токенов, которых нет в таблицах
             unknown_tokens = []
             lex_error_tokens = []
@@ -68,7 +68,7 @@ def parse_file(file_path):
 
                 if token not in keywords and token not in delimiters:
                     unknown_tokens.append(token)
-                    
+
                     # Проверка на возможную лексическую ошибку (похоже на ключевое слово)
                     closest_keyword = difflib.get_close_matches(token, keywords, n=1, cutoff=0.8)
                     if closest_keyword:
@@ -82,29 +82,8 @@ def parse_file(file_path):
                 return "Лексический анализ ОК"
 
             return unknown_tokens, lex_error_tokens, variables, variable_errors
-            
+
     except FileNotFoundError:
         print(f"Файл {file_path} не найден.")
     except Exception as e:
         print(f"Произошла ошибка: {e}")
-
-# Пример использования функции
-result = parse_file('gg.m')
-
-if isinstance(result, str):
-    # Если результат - строка (успешный анализ)
-    print(result)
-else:
-    unknown_tokens, lex_error_tokens, variables, variable_errors = result
-    
-    # Вывод ошибок
-    if lex_error_tokens:
-        print("\nЛексические ошибки:")
-        for error in lex_error_tokens:
-            print(error)
-
-    # Вывод ошибок в переменных
-    if variable_errors:
-        print("\nОшибки в переменных:")
-        for error in variable_errors:
-            print(error)
