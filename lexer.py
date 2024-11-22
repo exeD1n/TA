@@ -12,7 +12,7 @@ class Lexer:
             ";", ",", "}", "{", "(", ")", " ", ".", "=",
         }
         self.comment_start = "#"
-        self.comment_end = "#|"
+        self.comment_end = "#"
 
         # Регулярные выражения для лексем
         self.patterns = {
