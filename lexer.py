@@ -3,7 +3,7 @@ import difflib
 
 # Таблица №1 ключевых слов языка M
 keywords = {
-    "program", "var", "begin", "end", "let", "if", "then", "else", "and_else", 
+    "program", "var", "begin", "end", "let", "if", "then", "else", "end_else", 
     "for", "do", "while", "loop", "input", "output", "%", "!", "$"
 }
 

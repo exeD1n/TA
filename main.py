@@ -1,34 +1,54 @@
 import sys
 from lexer import parse_file
+from syntax import check_syntax
+from semantix import check_semantics
 
 def main():
-    # Проверка на наличие аргумента
+    # Проверка наличия аргумента (имени файла)
     if len(sys.argv) != 2:
         print("Использование: python main.py <имя_файла>")
         return
 
     file_path = sys.argv[1]  # Получаем имя файла из аргументов командной строки
 
-    # Вызов функции парсинга
-    result = parse_file(file_path)
+    # Выполнение лексического анализа
+    print("\n--- Лексический анализ ---")
+    lex_result = parse_file(file_path)
 
-    if isinstance(result, str):
-        # Если результат - строка (успешный анализ)
-        print(result)
+    if isinstance(lex_result, str):
+        # Если результат - строка, то лексический анализ прошел успешно
+        print(lex_result)
     else:
-        unknown_tokens, lex_error_tokens, variables, variable_errors = result
+        # Если есть ошибки, выводим их и завершаем выполнение
+        unknown_tokens, lex_error_tokens, variables, variable_errors = lex_result
 
-        # Вывод ошибок
         if lex_error_tokens:
-            print("\nЛексические ошибки:")
+            print("Лексические ошибки:")
             for error in lex_error_tokens:
-                print(error)
+                print(f"  {error}")
 
-        # Вывод ошибок в переменных
         if variable_errors:
             print("\nОшибки в переменных:")
             for error in variable_errors:
-                print(error)
+                print(f"  {error}")
+
+        print("\nЛексический анализ завершился с ошибками. Исправьте их и повторите попытку.")
+        return
+
+    # Выполнение синтаксического анализа
+    print("\n--- Синтаксический анализ ---")
+    syntax_result = check_syntax(file_path)
+    if syntax_result != "Синтаксический анализ ОК":
+        print(syntax_result)
+        print("\nСинтаксический анализ завершился с ошибками. Исправьте их и повторите попытку.")
+        return
+
+    print(syntax_result)
+
+    # Выполнение семантического анализа
+    print("\n--- Семантический анализ ---")
+    semantic_result = check_semantics(file_path)
+    print(semantic_result)
 
 if __name__ == "__main__":
     main()
