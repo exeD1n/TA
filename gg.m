@@ -1,10 +1,9 @@
 # Начало программы должно начинаться только с program var #
 program var
 # Объявление переменных идет после program var #
-% number1, number2, result
+$ num1, num2, res
 begin
-    # Комментарий пишется только на отдельной строке #
-    input(number1, number2)
-    output(result)
-    
+    let num1 = true;
+    num2 = false;
+    res = num1 + num2;
 end.

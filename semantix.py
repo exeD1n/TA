@@ -1,80 +1,66 @@
 import re
 
+# Регулярные выражения для типов данных
+int_regex = r"^-?\d+$"  # Целое число
+float_regex = r"^-?\d+\.\d+$"  # Вещественное число
+boolean_regex = r"^(true|false)$"  # Булевое значение
+
 def check_semantics(file_path):
     try:
         # Открытие файла для чтения
         with open(file_path, 'r', encoding='utf-8') as file:
             lines = file.readlines()
 
-        # Удаление пустых строк
-        lines = [line.strip() for line in lines if line.strip()]
+        # Удаление пустых строк и комментариев
+        lines = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
 
-        # Регулярное выражение для корректного комментария
-        comment_regex = r"^#.*#$"
+        if not lines:
+            return "[Error] Файл пустой или содержит только комментарии."
 
-        # Удаляем строки с комментариями
-        lines = [line for line in lines if not re.match(comment_regex, line)]
+        # Проверка на наличие строки "program var" в начале
+        if lines[0] != "program var":
+            return "[Error] Программа должна начинаться с 'program var'."
 
-        # Проверка первой строки
-        if not lines or lines[0].lower() != "program var":
-            return "[Error] Семантическая ошибка: программа должна начинаться с 'program var'."
-
-        # Проверка второй строки и типа переменных
-        if len(lines) < 2 or not lines[1].startswith(('%', '!', '$')):
-            return "[Error] Семантическая ошибка: во второй строке должны быть объявлены переменные с '%', '!' или '$'."
-
-        # Определение типа данных из символа
-        variable_prefix = lines[1][0]
-        if variable_prefix == '%':
-            expected_type = 'int'
-        elif variable_prefix == '!':
-            expected_type = 'float'
-        elif variable_prefix == '$':
-            expected_type = 'boolean'
+        # Тип данных, указанный во второй строке
+        if len(lines) < 2:
+            return "[Error] Отсутствует вторая строка с типом переменных."
+        
+        variable_declaration = lines[1]
+        declared_type = None
+        if variable_declaration.startswith('%'):
+            declared_type = "int"
+        elif variable_declaration.startswith('!'):
+            declared_type = "float"
+        elif variable_declaration.startswith('$'):
+            declared_type = "boolean"
         else:
-            return "[Error] Семантическая ошибка: некорректный символ для объявления переменных."
+            return "[Error] Вторая строка должна начинаться с %, ! или $."
 
-        # Проверяем, что переменные объявлены
-        variables = lines[1][1:].strip()
-        if not variables:
-            return "[Error] Семантическая ошибка: во второй строке должны быть объявлены хотя бы одна переменная."
+        # Типы данных, найденные в файле
+        used_types = set()
 
-        # Проверка наличия `begin` и `end.`
-        if len(lines) < 3 or lines[2].lower() != "begin":
-            return "[Error] Семантическая ошибка: третья строка должна быть 'begin'."
-        if lines[-1].lower() != "end.":
-            return "[Error] Семантическая ошибка: последняя строка должна быть 'end.'."
-
-        # Проверяем наличие кода между `begin` и `end.`
-        code_lines = lines[3:-1]
-        if not code_lines:
-            return "Семантический анализ: Ok (программа без кода между begin и end.)"
-
-        # Словарь типов данных
-        data_types = {
-            'int': r"^[-+]?\d+$",  # Целые числа
-            'float': r"^[-+]?\d*\.\d+$",  # Вещественные числа
-            'boolean': r"^(true|false)$"  # Булевы значения
-        }
-
-        # Определяем, используется ли только один тип данных
-        detected_types = set()
-        for line in code_lines:
-            tokens = re.findall(r'\w+', line)  # Извлекаем все слова/переменные
+        # Проверяем содержимое программы
+        for line in lines[2:]:
+            # Игнорируем строки с комментариями (они уже удалены)
+            # Извлекаем все возможные токены (числа, значения true/false)
+            tokens = re.findall(r'\b(true|false|-?\d+\.\d+|-?\d+)\b', line, re.IGNORECASE)
             for token in tokens:
-                for dtype, regex in data_types.items():
-                    if re.match(regex, token):
-                        detected_types.add(dtype)
+                if re.match(int_regex, token):
+                    used_types.add("int")
+                elif re.match(float_regex, token):
+                    used_types.add("float")
+                elif re.match(boolean_regex, token, re.IGNORECASE):
+                    used_types.add("boolean")
 
-        # Проверяем, используется ли только один тип данных
-        if len(detected_types) > 1:
-            return "[Error] Семантическая ошибка: программа должна использовать только один тип данных."
+        # Проверка на использование одного типа данных
+        if len(used_types) > 1:
+            return f"[Error] В программе используются разные типы данных: {', '.join(used_types)}."
+        
+        # Проверка соответствия использованного типа данных объявленному
+        if declared_type not in used_types:
+            return f"[Error] Заявленный тип данных '{declared_type}' не соответствует используемому: {', '.join(used_types)}."
 
-        # Проверяем, соответствует ли тип данных символу во второй строке
-        if expected_type not in detected_types and code_lines:
-            return f"[Error] Семантическая ошибка: тип данных не соответствует символу '{variable_prefix}' во второй строке."
-
-        return "Семантический анализ: Ok"
+        return "Семантический анализ: OK"
 
     except FileNotFoundError:
         return f"[Error] Файл {file_path} не найден."
