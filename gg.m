@@ -22,7 +22,25 @@ begin
 
     do while
         x = y
-        let z = x + y
+        output(a)
     loop
 
+
+    if 
+        y < 5
+    then 
+        output(x)
+    else 
+        let z = x + 1
+    else
+        let z = x + 1
+    end_else
+
+    if 
+        x > 10
+    then 
+        let z = x * 2
+    end_else
+
+    
 end.

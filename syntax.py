@@ -85,6 +85,43 @@ def check_syntax(file_path):
                 i += 4
                 continue
             
+            # Проверка блока if с множественными else
+            if line.lower() == 'if':
+                # Проверка выражения после if
+                expression_line = body_lines[i + 1]
+                if not re.match(expression_regex, expression_line):
+                    return f"[Error] Синтаксическая ошибка: некорректное выражение в if: {expression_line}"
+
+                # Проверка then
+                then_line = body_lines[i + 2]
+                if then_line.lower() != 'then':
+                    return f"[Error] Синтаксическая ошибка: после выражения должно быть 'then'"
+
+                # Проверка оператора после then
+                operator_line = body_lines[i + 3]
+                if not (re.match(assignment_regex, operator_line) or
+                        re.match(input_regex, operator_line) or
+                        re.match(output_regex, operator_line)):
+                    return f"[Error] Синтаксическая ошибка: некорректный оператор после 'then' в if: {operator_line}"
+
+                # Проверка для else блоков
+                j = i + 4
+                while j < len(body_lines) and body_lines[j].lower() == "else":
+                    operator_line = body_lines[j + 1]
+                    if not (re.match(assignment_regex, operator_line) or
+                            re.match(input_regex, operator_line) or
+                            re.match(output_regex, operator_line)):
+                        return f"[Error] Синтаксическая ошибка: некорректный оператор после 'else' в if: {operator_line}"
+                    j += 2  # Пропускаем оператор после else
+
+                # Проверка конца блока if с end_else
+                if body_lines[j].lower() != "end_else":
+                    return "[Error] Синтаксическая ошибка: отсутствует 'end_else' в блоке if"
+
+                # Пропускаем все строки, относящиеся к текущему if
+                i = j + 1
+                continue
+            
             # Проверка строк (присваивания, ввода, вывода)
             if not (re.match(assignment_regex, line) or
                     re.match(input_regex, line) or
