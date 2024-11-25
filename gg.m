@@ -15,9 +15,14 @@ begin
     input(a b)
     input(a b z)
 
-    output(a)
+    output(a + b z)
     output(a + b)
     output(a or b)
+    output(a)
 
+    do while
+        x = y
+        let z = x + y
+    loop
 
 end.

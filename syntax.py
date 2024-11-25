@@ -47,16 +47,51 @@ def check_syntax(file_path):
         body_lines = cleaned_lines[3:-1]
 
         # Регулярные выражения для проверки строк
-        assignment_regex = r'^(let\s+)?(?!let\b|input\b|output\b)[a-zA-Z_]\w*\s*=\s*(([a-zA-Z_]\w*|\d+(\.\d+)?|true|false)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false))*)$'
+        assignment_regex = r'^(let\s+)?[a-zA-Z_]\w*\s*=\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false))*$'
         input_regex = r'^input\s*\(\s*[a-zA-Z_]\w*(\s+[a-zA-Z_]\w*)*\s*\)$'
-        output_regex = r'^output\s*\(\s*([a-zA-Z_]\w*(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*[a-zA-Z_]\w*)*)\s*\)$'
-        
+        output_regex = r'^output\s*\(\s*([a-zA-Z_]\w*(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*[a-zA-Z_]\w*)*(\s+[a-zA-Z_]\w*)*)\s*\)$'
+        do_while_start_regex = r'^do\s+while$'
+        loop_regex = r'^loop$'
+        expression_regex = r'^([a-zA-Z_]\w*|\d+(\.\d+)?|true|false)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false))*$'
+
         # Проверка строк между `begin` и `end.`
-        for line in body_lines:
+        i = 0
+        while i < len(body_lines):
+            line = body_lines[i]
+            
+            # Проверка начала блока `do while`
+            if re.match(do_while_start_regex, line):
+                if i + 3 >= len(body_lines):
+                    return "[Error] Синтаксическая ошибка: неполный блок do while."
+
+                # Проверка выражения
+                expression_line = body_lines[i + 1]
+                if not re.match(expression_regex, expression_line):
+                    return f"[Error] Синтаксическая ошибка: некорректное выражение в do while: {expression_line}"
+
+                # Проверка оператора
+                operator_line = body_lines[i + 2]
+                if not (re.match(assignment_regex, operator_line) or
+                        re.match(input_regex, operator_line) or
+                        re.match(output_regex, operator_line)):
+                    return f"[Error] Синтаксическая ошибка: некорректный оператор в do while: {operator_line}"
+
+                # Проверка `loop`
+                loop_line = body_lines[i + 3]
+                if not re.match(loop_regex, loop_line):
+                    return f"[Error] Синтаксическая ошибка: отсутствует 'loop' после оператора в do while: {loop_line}"
+
+                # Пропускаем строки блока do while
+                i += 4
+                continue
+            
+            # Проверка строк (присваивания, ввода, вывода)
             if not (re.match(assignment_regex, line) or
                     re.match(input_regex, line) or
                     re.match(output_regex, line)):
                 return f"[Error] Синтаксическая ошибка: строка не соответствует допустимым конструкциям: {line}"
+            
+            i += 1
 
         return "Синтаксический анализ ОК"
 
