@@ -17,10 +17,10 @@ def check_syntax(file_path):
         for line in lines:
             if '#' in line:
                 # Проверяем строки с символами `#`
-                if line.startswith('#') and line.endswith('#'):
+                if re.match(comment_regex, line):
                     # Корректный комментарий, игнорируем
                     continue
-                elif '#' in line:
+                else:
                     return f"[Error] Синтаксическая ошибка: некорректный комментарий: {line}"
             # Добавляем только строки, которые не являются комментариями
             cleaned_lines.append(line)
@@ -42,6 +42,21 @@ def check_syntax(file_path):
         # Проверка последней строки
         if cleaned_lines[-1].lower() != "end.":
             return "[Error] Синтаксическая ошибка: последняя строка должна быть 'end.'."
+
+        # Извлекаем строки между `begin` и `end.`
+        body_lines = cleaned_lines[3:-1]
+
+        # Регулярные выражения для проверки строк
+        assignment_regex = r'^(let\s+)?(?!let\b|input\b|output\b)[a-zA-Z_]\w*\s*=\s*(([a-zA-Z_]\w*|\d+(\.\d+)?|true|false)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false))*)$'
+        input_regex = r'^input\s*\(\s*[a-zA-Z_]\w*(\s+[a-zA-Z_]\w*)*\s*\)$'
+        output_regex = r'^output\s*\(\s*([a-zA-Z_]\w*(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*[a-zA-Z_]\w*)*)\s*\)$'
+        
+        # Проверка строк между `begin` и `end.`
+        for line in body_lines:
+            if not (re.match(assignment_regex, line) or
+                    re.match(input_regex, line) or
+                    re.match(output_regex, line)):
+                return f"[Error] Синтаксическая ошибка: строка не соответствует допустимым конструкциям: {line}"
 
         return "Синтаксический анализ ОК"
 

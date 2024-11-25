@@ -2,12 +2,22 @@
 program var
 
 # Объявление переменных идет после program var #
-% num1, num2, res
+% x, y, z, a, b
 
 begin
-    let num1 = 1
-    num2 = 2
+    let x = 5
+    y = x + 3
+    z = 1
+    x = y >= z
+    x = 5 or 2
 
-    input(num1)
-    input(num1 num2)
+    input(a)
+    input(a b)
+    input(a b z)
+
+    output(a)
+    output(a + b)
+    output(a or b)
+
+
 end.
