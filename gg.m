@@ -5,11 +5,15 @@ program var
 % x, y, z, a, b, i, j
 
 begin
+
     let x = 5
-    y = x + 3
-    z = 1
-    x = y >= z
-    x = 5 or 2
+
+    y = x + 3 ; 
+    z = 1 ; 
+
+    x = y >= z ; 
+    
+    x = 5 or 2 ; 
 
     input(a)
     input(a b)
@@ -28,7 +32,10 @@ begin
     if 
         x > 10
     then 
-        let z = x * 2
+        do while
+            x = y
+            output(a)
+        loop
     end_else
 
     if 
@@ -36,7 +43,10 @@ begin
     then 
         output(x)
     else
-        let z = x + 1
+        do while
+            x = y
+            output(a)
+        loop
     end_else
 
     if 
@@ -47,7 +57,7 @@ begin
         let z = x + 1
     else
         let z = x + 1
-    end_else
+    end_else ;
     
     do while
         x = y

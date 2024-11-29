@@ -58,9 +58,10 @@ def check_document(lines):
 
 def check_operator(line):
     """Проверяет оператор: присваивание, input, output, do while или if-else."""
-    assignment_regex = r'^(let\s+)?[a-zA-Z_]\w*\s*=\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false))*$'
-    input_regex = r'^input\s*\(\s*[a-zA-Z_]\w*(\s+[a-zA-Z_]\w*)*\s*\)$'
-    output_regex = r'^output\s*\(\s*([a-zA-Z_]\w*(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*[a-zA-Z_]\w*)*(\s+[a-zA-Z_]\w*)*)\s*\)$'
+    assignment_regex = r'^(let\s+)?[a-zA-Z_]\w*\s*=\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false))*\s*;?$'
+    input_regex = r'^input\s*\(\s*[a-zA-Z_]\w*(\s+[a-zA-Z_]\w*)*\s*\)\s*;?$'
+    output_regex = r'^output\s*\(\s*([a-zA-Z_]\w*(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*[a-zA-Z_]\w*)*(\s+[a-zA-Z_]\w*)*)\s*\)\s*;?$'
+
     
     if re.match(assignment_regex, line):
         return  # Присваивание корректно
@@ -74,35 +75,36 @@ def check_operator(line):
 def check_do_while(lines, i):
     """Проверяет синтаксис блока `do while` с вложенными операторами."""
     do_while_start_regex = r'^do\s+while$'
-    loop_regex = r'^loop$'
     expression_regex = r'^([a-zA-Z_]\w*|\d+(\.\d+)?|true|false)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false))*$'
+    loop_regex = r"^loop\s*;?$"
 
-    if not re.match(do_while_start_regex, lines[i]):
+    # Проверка начала блока `do while`
+    if not re.match(do_while_start_regex, lines[i].strip(), re.IGNORECASE):
         raise SyntaxError(f"Ожидается 'do while', но найдено: {lines[i]}")
 
-    if i + 3 >= len(lines):
-        raise SyntaxError("Неполный блок 'do while'.")
+    if i + 1 >= len(lines):
+        raise SyntaxError("Неполный блок 'do while': отсутствует выражение.")
 
-    # Проверка выражения
-    expression_line = lines[i + 1]
-    if not re.match(expression_regex, expression_line):
+    # Проверка выражения после `do while`
+    expression_line = lines[i + 1].strip()
+    if not re.match(expression_regex, expression_line, re.IGNORECASE):
         raise SyntaxError(f"Некорректное выражение в 'do while': {expression_line}")
 
-    # Проверка оператора внутри `do while`
-    i = i + 2
-    while i < len(lines) and lines[i].strip().lower() != "loop":
+    # Проверка вложенных операторов
+    i += 2  # Переход к первому оператору внутри `do while`
+    while i < len(lines) and not re.match(loop_regex, lines[i].strip(), re.IGNORECASE):
         line = lines[i].strip().lower()
-        if line == "if":
+        if line.startswith("if"):
             i = check_if_else(lines, i)
-        elif line == "do while":
+        elif line.startswith("do while"):
             i = check_do_while(lines, i)
         else:
             check_operator(lines[i])
             i += 1
 
-    # Проверка 'loop'
-    if lines[i].strip().lower() != "loop":
-        raise SyntaxError(f"Отсутствует 'loop' после оператора в 'do while' на строке {i}.")
+    # Проверка наличия `loop`
+    if i >= len(lines) or not re.match(loop_regex, lines[i].strip(), re.IGNORECASE):
+        raise SyntaxError(f"Отсутствует корректный 'loop' в блоке 'do while' на строке {i}.")
 
     return i + 1  # Возвращаем индекс после завершения блока 'do while'
 
@@ -118,7 +120,7 @@ def process_nested_blocks(lines, i):
         elif line == "if":
             # Встречаем вложенный блок if-else
             i = check_if_else(lines, i)
-        elif line == "if":
+        elif line == "for":
             # Встречаем вложенный блок for
             i = check_for_loop(lines, i)
         elif line == 'do while':
@@ -138,62 +140,68 @@ def process_nested_blocks(lines, i):
 
 def check_if_else(lines, i):
     """Проверка синтаксиса блока if-else с вложенными конструкциями и множественными else."""
-    if_regex = r'if'
+    if_regex = r'^if$'
     expression_regex = r'^([a-zA-Z_]\w*|\d+(\.\d+)?|true|false)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false))*$'
-    then_regex = r'then'
-    end_else_regex = r'end_else'
+    then_regex = r'^then$'
+    else_regex = r'^else$'
+    end_else_regex = r'^end_else\s*;?$'
 
     # Проверка начала блока if
-    if not re.match(if_regex, lines[i]):
+    if not re.match(if_regex, lines[i].strip(), re.IGNORECASE):
         raise SyntaxError(f"Ожидается 'if', но найдено: {lines[i]}")
 
     # Проверка выражения после if
-    expression_line = lines[i + 1]
-    if not re.match(expression_regex, expression_line):
+    if i + 1 >= len(lines):
+        raise SyntaxError("Отсутствует выражение после 'if'.")
+    expression_line = lines[i + 1].strip()
+    if not re.match(expression_regex, expression_line, re.IGNORECASE):
         raise SyntaxError(f"Некорректное выражение в 'if': {expression_line}")
 
     # Проверка 'then'
-    then_line = lines[i + 2]
-    if then_line.lower() != 'then':
-        raise SyntaxError(f"Ожидается 'then' после выражения, но найдено: {then_line}")
+    if i + 2 >= len(lines):
+        raise SyntaxError("Отсутствует 'then' после выражения.")
+    then_line = lines[i + 2].strip()
+    if not re.match(then_regex, then_line, re.IGNORECASE):
+        raise SyntaxError(f"Ожидается 'then', но найдено: {then_line}")
+
+    # Переход к оператору после 'then'
+    i += 3
+    if i >= len(lines):
+        raise SyntaxError("Отсутствует оператор после 'then'.")
 
     # Проверка оператора после 'then'
-    operator_line = lines[i + 3]
-    if operator_line.lower() == 'if':
-        # Вложенный if
-        i = check_if_else(lines, i + 3) - 1
-    elif operator_line.lower() == 'do while':
-        i = check_do_while(lines, i + 3)
+    if lines[i].strip().lower() == "if":
+        i = check_if_else(lines, i)
+    elif lines[i].strip().lower() == "do while":
+        i = check_do_while(lines, i)
+    elif lines[i].strip().lower() == "for":
+        i = check_for_loop(lines, i)
     else:
-        try:
-            check_operator(operator_line)  # Проверка оператора после then
-        except SyntaxError as e:
-            raise SyntaxError(f"Некорректный оператор после 'then' в 'if': {operator_line}")
-    
+        check_operator(lines[i].strip())
+        i += 1
+
     # Проверка блоков 'else' (если они есть)
-    j = i + 4
-    while j < len(lines) and lines[j].lower() == 'else':
-        operator_line = lines[j + 1]
-        if operator_line.lower() == 'if':
-            # Вложенный if в else
-            j = check_if_else(lines, j + 1) - 1
-        elif operator_line.lower() == 'do while':
-            # Вложенный do while в else
-            j = check_do_while(lines, j)
+    while i < len(lines) and re.match(else_regex, lines[i].strip(), re.IGNORECASE):
+        i += 1  # Переход к оператору после 'else'
+        if i >= len(lines):
+            raise SyntaxError("Отсутствует оператор после 'else'.")
+
+        if lines[i].strip().lower() == "if":
+            i = check_if_else(lines, i)
+        elif lines[i].strip().lower() == "do while":
+            i = check_do_while(lines, i)
+        elif lines[i].strip().lower() == "for":
+            i = check_for_loop(lines, i)
         else:
-            try:
-                check_operator(operator_line)  # Проверка оператора после else
-            except SyntaxError as e:
-                raise SyntaxError(f"Некорректный оператор после 'else' в 'if': {operator_line}")
-        j += 2  # Переходим к следующей строке после else
+            check_operator(lines[i].strip())
+            i += 1
 
     # Проверка 'end_else' только в конце блока if
-    if j < len(lines) and lines[j].lower() != 'end_else':
-        raise SyntaxError(f"Отсутствует 'end_else' в блоке 'if', или оно неверно размещено.")
-    
-    return j + 1  # Возвращаем индекс после завершения блока 'if-else'
+    if i >= len(lines) or not re.match(end_else_regex, lines[i].strip(), re.IGNORECASE):
+        raise SyntaxError(f"Отсутствует 'end_else' или оно некорректно в блоке 'if'.")
 
-import re
+    return i + 1  # Возвращаем индекс после завершения блока 'if-else'
+
 
 def check_for_loop(lines, i):
     """
@@ -239,5 +247,9 @@ def check_for_loop(lines, i):
         except SyntaxError:
             raise SyntaxError(f"Некорректный оператор в теле 'for': {body_line}")
 
-    return i + 1  # Возвращаем индекс после завершения обработки цикла
-    
+    # Проверка на необязательный символ ; в конце тела цикла
+    if body_line.endswith(";"):
+        body_line = body_line[:-1].strip()  # Убираем ; для последующей проверки на пустую строку
+
+    # Возвращаем индекс после завершения обработки цикла
+    return i + 1  # Возвращаем индекс после завершения блока 'for'
