@@ -6,6 +6,8 @@ program var
 
 begin
 
-    let x = 5
+    let x = 3.14 ;
     
-end.
+    z = 1.23e45 >= 10.0 
+
+end .

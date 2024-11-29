@@ -40,7 +40,7 @@ def validate_constructions(file_path):
         if line == "begin":
             in_construction_block = True
             continue
-        elif line == "end.":
+        elif line == "end .":
             in_construction_block = False
             if construction:  # Если есть накопленный блок, добавляем его
                 constructions.append(' '.join(construction))
@@ -113,8 +113,8 @@ def check_document(lines):
         raise SyntaxError("Третья строка должна быть 'begin'.")
     
     # Проверка последней строки
-    if lines[-1].lower() != "end.":
-        raise SyntaxError("Последняя строка должна быть 'end.'.")
+    if lines[-1].lower() != "end .":
+        raise SyntaxError("Последняя строка должна быть 'end .'.")
     
     # Проверка содержимого между begin и end
     body_lines = lines[3:-1]

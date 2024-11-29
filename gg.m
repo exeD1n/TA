@@ -10,29 +10,29 @@ begin
 
     y = x + 3 ; 
 
-    z = 1.23e4 + 10 ;
+    z = 1.23e45 + 10 ;
 
     x = y >= z ; 
 
     x = 5 or 2 ; 
 
-    input(a) ;
+    input (a) ;
 
-    input(a b) ; 
+    input (a b) ; 
 
-    input(a b z) ; 
+    input (a b z) ; 
 
-    output(a + b z) ; 
+    output (a + b z) ; 
 
-    output(1.23e4 + b) ; 
+    output (1.23e4 + b) ; 
 
-    output(a or b) ; 
+    output (a or b) ; 
 
-    output(a) ;
+    output (a) ;
 
     do while
         x = y
-        output(a)
+        output (a)
     loop ;
 
     if 
@@ -40,25 +40,25 @@ begin
     then 
         do while
             x = y
-            output(a)
+            output (a)
         loop
     end_else ;
 
     if 
         y < 5
     then 
-        output(x)
+        output (x)
     else
         do while
             x = y
-            output(a)
+            output (a)
         loop
     end_else ;
 
     if 
         y < 5
     then 
-        output(x)
+        output (x)
     else 
         let z = x + 1
     else
@@ -91,4 +91,4 @@ begin
                     end_else
                 loop 
 
-end.
+end .
