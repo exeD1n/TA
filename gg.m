@@ -10,7 +10,7 @@ begin
 
     y = x + 3 ; 
 
-    z = 1 ; 
+    z = 1 ;
 
     x = y >= z ; 
 
@@ -33,7 +33,7 @@ begin
     do while
         x = y
         output(a)
-    loop 
+    loop ;
 
     if 
         x > 10
@@ -42,7 +42,7 @@ begin
             x = y
             output(a)
         loop
-    end_else 
+    end_else ;
 
     if 
         y < 5
@@ -53,7 +53,7 @@ begin
             x = y
             output(a)
         loop
-    end_else
+    end_else ;
 
     if 
         y < 5
@@ -63,7 +63,7 @@ begin
         let z = x + 1
     else
         let z = x + 1
-    end_else 
+    end_else ;
     
     do while
         x = y
@@ -74,7 +74,7 @@ begin
         else 
             let z = x + 1
         end_else
-    loop
+    loop ;
 
     for 
     ( x >= 0 ; x <= 5 ; x = x + 1 )
@@ -89,6 +89,6 @@ begin
                     else 
                         let z = x + 1
                     end_else
-                loop
+                loop 
 
 end.
