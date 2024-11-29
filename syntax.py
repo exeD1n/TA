@@ -20,9 +20,33 @@ def check_syntax(file_path):
         return f"[Error] Файл {file_path} не найден."
     except Exception as e:
         return f"[Error] {e}"
+    
+    
+def process_main_block(lines):
+    """Обрабатывает основной блок между begin и end, добавляя ; при необходимости."""
+    main_constructions = []
+    
+    # Определяем список главных конструкций
+    for line in lines:
+        line = line.strip().lower()
+        if line in ['do while', 'if', 'for']:
+            main_constructions.append(line)
+    
+    # Если конструкций больше одной, добавляем ; в конце каждой (кроме последней)
+    if len(main_constructions) > 1:
+        for i in range(len(lines)):
+            line = lines[i].strip().lower()
+            # Добавляем ; в конец каждой главной конструкции, если она не последняя
+            if line in ['do while', 'if', 'for'] and i < len(lines) - 1:
+                if not lines[i].endswith(';'):
+                    lines[i] = lines[i] + " ;"
+    
+    return lines
+
 
 def check_document(lines):
     """Проверяет структуру всего документа."""
+    
     # Проверка первой строки
     if not lines or lines[0].lower() != "program var":
         raise SyntaxError("Первая строка должна быть 'program var'.")
@@ -43,18 +67,45 @@ def check_document(lines):
     
     # Проверка содержимого между begin и end
     body_lines = lines[3:-1]
+    
+    # Пройдем по строкам и разделим на главные конструкции
+    main_constructs = []  # Список для хранения главных конструкций
     i = 0
     while i < len(body_lines):
-        line = body_lines[i]
-        if line.lower() == "do while":
-            i = check_do_while(body_lines, i)  # Возвращаем новый индекс после проверки do while
-        elif line.lower() == "if":
-            i = check_if_else(body_lines, i)  # Возвращаем новый индекс после проверки if-else
-        elif line.lower() == "for":
-            i = check_for_loop(body_lines, i)
-        else:
-            check_operator(line)
+        line = body_lines[i].strip()
+        
+        if line == '':
             i += 1
+            continue
+        
+        # Обработка главных конструкций
+        if line.lower() in ['do while', 'if', 'for']:
+            construct = line.lower()
+            main_constructs.append(construct)
+            # Пропускаем весь блок конструкции
+            if construct == 'do while':
+                i = check_do_while(body_lines, i)
+            elif construct == 'if':
+                i = check_if_else(body_lines, i)
+            elif construct == 'for':
+                i = check_for_loop(body_lines, i)
+        else:
+            # Обрабатываем обычные операторы
+            if line.endswith(';'):
+                check_operator(line)
+            else:
+                check_operator(line)
+            i += 1
+    
+    # Если конструкций больше одной, проверим окончание с ;
+    if len(main_constructs) > 1:
+        for i, construct in enumerate(main_constructs):
+            # Мы проверяем только главные конструкции (не вложенные)
+            if body_lines[i].strip() and not body_lines[i].strip().endswith(';'):
+                raise SyntaxError(f"Ожидается ';' в конце главной конструкции: {body_lines[i]}")
+
+    # Дополнительная обработка главных блоков, если нужно
+    return True
 
 def check_operator(line):
     """Проверяет оператор: присваивание, input, output, do while или if-else."""
