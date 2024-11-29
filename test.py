@@ -55,8 +55,6 @@ def check_document(lines):
         else:
             check_operator(line)
             i += 1
-            
-    check_semicolons(lines[3:-1])
 
 def check_operator(line):
     """Проверяет оператор: присваивание, input, output, do while или if-else."""
@@ -242,39 +240,3 @@ def check_for_loop(lines, i):
             raise SyntaxError(f"Некорректный оператор в теле 'for': {body_line}")
 
     return i + 1  # Возвращаем индекс после завершения обработки цикла
-
-def check_semicolons(lines):
-    """
-    Проверяет правильность использования точек с запятой в блоках между `begin` и `end`.
-    """
-    in_complex_structure = False  # Флаг, который отслеживает, находимся ли внутри сложной структуры
-
-    for i, line in enumerate(lines):
-        line = line.strip()
-
-        # Игнорируем пустые строки и комментарии
-        if not line or line.startswith("#"):
-            continue
-
-        # Если это начало сложной конструкции, точки с запятой внутри не нужны
-        if line.lower() in {"do while", "if", "for"}:
-            in_complex_structure = True
-            continue
-
-        # Если встречаем конец сложной конструкции
-        if line.lower() in {"loop", "end_else", "end"}:
-            in_complex_structure = False
-            continue
-
-        # Проверяем операторы на верхнем уровне
-        if not in_complex_structure:
-            # Последний оператор перед `end` не должен содержать `;`
-            if i == len(lines) - 1 and line.endswith(";"):
-                raise SyntaxError(f"Точка с запятой не должна быть после последнего оператора: {line}")
-            
-            # Если это не последний оператор, он должен заканчиваться `;`
-            if i < len(lines) - 1 and not line.endswith(";"):
-                raise SyntaxError(f"Отсутствует точка с запятой после оператора на строке {i + 1}")
-
-
-    
