@@ -160,9 +160,9 @@ def check_document(lines):
 
 def check_operator(line):
     """Проверяет оператор: присваивание, input, output, do while или if-else."""
-    assignment_regex = r'^(let\s+)?[a-zA-Z_]\w*\s*=\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*([a-zA-Z_]\w*|\d+(\.\d+)?|true|false))*\s*;?$'
+    assignment_regex = r'^(let\s+)?[a-zA-Z_]\w*\s*=\s*([a-zA-Z_]\w*|\d+(\.\d+)?([eE][-+]?\d+)?|true|false)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*([a-zA-Z_]\w*|\d+(\.\d+)?([eE][-+]?\d+)?|true|false))*\s*;?$'
     input_regex = r'^input\s*\(\s*[a-zA-Z_]\w*(\s+[a-zA-Z_]\w*)*\s*\)\s*;?$'
-    output_regex = r'^output\s*\(\s*([a-zA-Z_]\w*(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*[a-zA-Z_]\w*)*(\s+[a-zA-Z_]\w*)*)\s*\)\s*;?$'
+    output_regex = r'^output\s*\(\s*([a-zA-Z_]\w*|[-+]?\d+\.\d+([eE][-+]?\d+)?)(\s*(\+|-|\*|\/|or|and|not|<>|=|<|<=|>|>=)\s*[a-zA-Z_]\w*|[-+]?\d+\.\d+([eE][-+]?\d+)?|\s*[a-zA-Z_]\w*)*\s*\)\s*;?$'
 
     
     if re.match(assignment_regex, line):

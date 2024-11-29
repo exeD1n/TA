@@ -2,7 +2,7 @@ import re
 
 # Регулярные выражения для типов данных
 int_regex = r"^-?\d+$"  # Целое число
-float_regex = r"^-?\d+\.\d+$"  # Вещественное число
+float_regex = r'^[+-]?\d+\.\d+$'  # Вещественное число
 boolean_regex = r"^(true|false)$"  # Булевое значение
 
 def check_semantics(file_path):

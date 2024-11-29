@@ -1,6 +1,5 @@
 import sys
 from lexer import parse_file
-# from syntax import check_syntax
 from semantix import check_semantics
 from syntax import check_syntax
 

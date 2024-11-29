@@ -10,7 +10,7 @@ begin
 
     y = x + 3 ; 
 
-    z = 1 ;
+    z = 1.23e4 + 10 ;
 
     x = y >= z ; 
 
@@ -24,7 +24,7 @@ begin
 
     output(a + b z) ; 
 
-    output(a + b) ; 
+    output(1.23e4 + b) ; 
 
     output(a or b) ; 
 
