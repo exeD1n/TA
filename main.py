@@ -2,7 +2,7 @@ import sys
 from lexer import parse_file
 # from syntax import check_syntax
 from semantix import check_semantics
-from test import check_syntax
+from syntax import check_syntax
 
 def main():
     # Проверка наличия аргумента (имени файла)
