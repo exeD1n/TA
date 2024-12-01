@@ -6,7 +6,7 @@ program var
 
 begin
 
-    let x = 3.14 ;
+    let x = 3 ;
     
     z = 1.23e45 >= 10.0 
 
