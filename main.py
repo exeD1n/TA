@@ -2,6 +2,7 @@ import sys
 from lexer import parse_file
 from semantix import check_semantics
 from syntax import check_syntax
+from parser import parse_program, replace_spaces_in_parse_file
 
 def main():
     # Проверка наличия аргумента (имени файла)
@@ -49,6 +50,12 @@ def main():
     print("\n--- Семантический анализ ---")
     semantic_result = check_semantics(file_path)
     print(semantic_result)
+
+
+    # Вызов функции парсинга из parser.py
+    print("\n--- Парсинг программы ---")
+    parse_program(file_path)
+    replace_spaces_in_parse_file()
 
 if __name__ == "__main__":
     main()

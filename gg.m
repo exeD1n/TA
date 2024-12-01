@@ -6,7 +6,7 @@ program var
 
 begin
 
-    let x = true ;
+    let x = 3 ;
 
     y = x + 3 ; 
 

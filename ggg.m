@@ -2,7 +2,7 @@
 program var
 
 # Объявление переменных идет после program var #
-% x, y, z, a, b, i, j
+% x , y , z , a , b , i , j
 
 begin
 

@@ -1,18 +1,17 @@
 import re  # Для обработки чисел в экспоненциальной записи
 
+# Таблица ключевых слов
+KEYWORDS = [
+    "program", "var", "begin", "end", "let", "if", "then", "else", "end_else",
+    "for", "do", "while", "loop", "input", "output", "%", "!", "$"
+]
+# Таблица разделителей
+DELIMITERS = [
+    "<>", "<", "<=", ">", ">=", "or", "and", "not", "+", "-", "*", "/", ";", ",",
+    "(", ")", "{", "}", "=", "#", ".", " "
+]
+
 def parse_program(file_path):
-    # Таблица ключевых слов
-    KEYWORDS = [
-        "program", "var", "begin", "end", "let", "if", "then", "else", "end_else",
-        "for", "do", "while", "loop", "input", "output", "%", "!", "$"
-    ]
-
-    # Таблица разделителей
-    DELIMITERS = [
-        "<>", "<", "<=", ">", ">=", "or", "and", "not", "+", "-", "*", "/", ";", ",",
-        "(", ")", "{", "}", "=", "#", ".", " "
-    ]
-
     try:
         # Открытие исходного файла
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -89,12 +88,9 @@ def parse_program(file_path):
 
 
 def replace_spaces_in_parse_file():
-    # Таблица разделителей
-    DELIMITERS = [
-        "<>", "<", "<=", ">", ">=", "or", "and", "not", "+", "-", "*", "/", ";", ",",
-        "(", ")", "{", "}", "=", "#", ".", " "
-    ]
-
+    """
+    Заменяет пробелы в файле `parse.txt` на токены из таблицы разделителей.
+    """
     try:
         # Открываем файл parse.txt для чтения
         with open("parse.txt", "r", encoding="utf-8") as file:
@@ -113,16 +109,7 @@ def replace_spaces_in_parse_file():
         with open("parse.txt", "w", encoding="utf-8") as file:
             file.write("\n".join(updated_lines))
 
-        print("Замена пробелов завершена. Результаты сохранены в файл parse.txt.")
-
     except FileNotFoundError:
         print("[Error] Файл parse.txt не найден.")
     except Exception as e:
         print(f"[Error] Произошла ошибка: {e}")
-
-
-# Пример использования
-if __name__ == "__main__":
-    input_file_path = "gg.m"
-    parse_program(input_file_path)
-    replace_spaces_in_parse_file()
